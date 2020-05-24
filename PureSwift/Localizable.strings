@@ -1,0 +1,15 @@
+/* 
+  Localizable.strings
+  PureSwift
+
+  Created by Aleksei Penzentcev on 24/05/2020.
+  Copyright © 2020 Aleksei Penzentcev. All rights reserved.
+*/
+
+"login.button" = "Login";
+"biometric.reason" = "User authentication";
+"logout.barButton" = "Logout";
+"search.placeholder" = "Search by title";
+"touchId.label" = "Enable touch ID login";
+"loginField.placeholder" = "Username";
+"passwordField.placeholder" = "Password";
