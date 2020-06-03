@@ -10,7 +10,6 @@ import UIKit
 
 protocol Coordinator: class {
     func start()
-    func showAlert()
 }
 
 protocol LoginCoordinator: Coordinator {
@@ -22,7 +21,7 @@ protocol MoviesListCoordinator: Coordinator {
 }
 
 final class AppCoordinator: Coordinator {
-    var navigationController: UINavigationController!
+    private var navigationController: UINavigationController!
 
     private let window: UIWindow
 
@@ -31,23 +30,26 @@ final class AppCoordinator: Coordinator {
     }
 
     func start() {
-        let vc = LoginViewController()
-        vc.coordinator = self
-        window.rootViewController = vc
+        let authenticationService = AuthenticationServiceImpl()
+        let credentialsService = CredentialsServiceImpl()
+        let viewModel = LoginViewModelImpl(authenticationService: authenticationService, credentialsService: credentialsService)
+
+        let viewController = LoginViewController(viewModel: viewModel)
+        viewController.coordinator = self
+        window.rootViewController = viewController
         window.makeKeyAndVisible()
     }
-
-    func showAlert() {
-
-    }
-
 }
 
 extension AppCoordinator: LoginCoordinator {
     func login() {
-        let vc = ListViewController()
-        vc.coordinator = self
-        let navigationController = UINavigationController(rootViewController: vc)
+        let networkService = NetworkServiceImpl()
+        let authenticationService = AuthenticationServiceImpl()
+        let viewModel = MoviesListViewModelImpl(networkService: networkService, authenticationService: authenticationService)
+
+        let viewController = ListViewController(viewModel: viewModel)
+        viewController.coordinator = self
+        let navigationController = UINavigationController(rootViewController: viewController)
         
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
@@ -56,10 +58,14 @@ extension AppCoordinator: LoginCoordinator {
 
 extension AppCoordinator: MoviesListCoordinator {
     func logout() {
-        let vc = LoginViewController()
-        vc.coordinator = self
+        let authenticationService = AuthenticationServiceImpl()
+        let credentialsService = CredentialsServiceImpl()
+        let viewModel = LoginViewModelImpl(authenticationService: authenticationService, credentialsService: credentialsService)
 
-        window.rootViewController = vc
+        let viewController = LoginViewController(viewModel: viewModel)
+        viewController.coordinator = self
+
+        window.rootViewController = viewController
         window.makeKeyAndVisible()
     }
 }

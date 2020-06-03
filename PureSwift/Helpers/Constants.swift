@@ -9,6 +9,7 @@
 import Foundation
 
 struct Constants {
+
     // MARK: - Decoder
 
     static let jsonDecoder: JSONDecoder = {

@@ -10,11 +10,11 @@ import Foundation
 import UIKit
 
 protocol NetworkService {
-    func getRequest(urlString: String, completion: @escaping (Any) -> ())
+    func getMovies(onSuccess: @escaping ([Movie]) -> (), onError: @escaping (Error) -> ())
     func downloadImage(from url: URL, onCompleted: @escaping ((_ image: UIImage) -> ()))
 }
 
-class NetworkServiceImpl: NSObject, NetworkService, URLSessionDelegate {
+final class NetworkServiceImpl: NSObject, NetworkService, URLSessionDelegate {
     lazy var downloadsSession: URLSession = {
       let configuration = URLSessionConfiguration.default
 
@@ -24,11 +24,9 @@ class NetworkServiceImpl: NSObject, NetworkService, URLSessionDelegate {
     }()
 
     public func downloadImage(from url: URL, onCompleted: @escaping ((_ image: UIImage) -> ())) {
-        print("Download Started")
         getData(from: url) { data, response, error in
             guard let data = data, error == nil else { return }
-            print(response?.suggestedFilename ?? url.lastPathComponent)
-            print("Download Finished")
+
             DispatchQueue.main.async() {
                 guard let image = UIImage(data: data) else { return }
                 onCompleted(image)
@@ -36,22 +34,38 @@ class NetworkServiceImpl: NSObject, NetworkService, URLSessionDelegate {
         }
     }
 
-    private func getData(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> ()) {
-        URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
+    private func getData(from url: URL, onCompleted: @escaping (Data?, URLResponse?, Error?) -> ()) {
+        URLSession.shared.dataTask(with: url, completionHandler: onCompleted).resume()
     }
 
-    public func getRequest(urlString: String, completion: @escaping (Any) -> ()) {
-        let url = URL(string: urlString)!
+    public func getMovies(onSuccess: @escaping ([Movie]) -> (), onError: @escaping (Error) -> ()){
+        getRequest(urlString: "https://api.androidhive.info/json/movies.json",
+                   onSuccess: { data in
+                    guard let models = data as? [[String: Any]] else { return }
+
+                    var jsonModels = [Movie]()
+                    for model in models {
+                        if let movie = try? Movie(json: model) {
+                            jsonModels.append(movie)
+                        }
+                    }
+                    onSuccess(jsonModels)
+                }, onError: { error in
+                    onError(error)
+                })
+    }
+
+    private func getRequest(urlString: String, onSuccess: @escaping (Any) -> (), onError: @escaping (Error) -> ()) {
+        guard let url = URL(string: urlString) else { return }
+        
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let unwrappedData = data else { return }
+
             do {
                 let str = try JSONSerialization.jsonObject(with: unwrappedData, options: .allowFragments)
-                print(str)
-                completion(str)
-
-
+                onSuccess(str)
             } catch {
-                print("json error: \(error)")
+                onError(error)
             }
         }
         task.resume()

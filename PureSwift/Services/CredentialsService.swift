@@ -14,7 +14,13 @@ protocol CredentialsService {
     func getLastLogin() -> String
 }
 
-class CredentialsServiceImpl: CredentialsService {
+final class CredentialsServiceImpl: CredentialsService {
+    enum KeychainKey: String {
+        case lastLogin
+    }
+
+    private let storage = SharedKeychainStorageImpl(groupName: "group.lexpenz.PureSwift")
+    
     private let allowedCredentials = [
         "User1": "Password1",
         "user2": "password2",
@@ -31,10 +37,10 @@ class CredentialsServiceImpl: CredentialsService {
     }
 
     func saveLast(login: String) {
-        UserDefaults.standard.set(login, forKey: "lastLogin")
+        try? storage.save(string: login, for: KeychainKey.lastLogin.rawValue)
     }
 
     func getLastLogin() -> String {
-        return UserDefaults.standard.string(forKey: "lastLogin") ?? "" 
+        return (try? storage.loadString(for: KeychainKey.lastLogin.rawValue)) ?? ""
     }
 }

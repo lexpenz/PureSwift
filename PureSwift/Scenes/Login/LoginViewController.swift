@@ -7,95 +7,149 @@
 //
 
 import UIKit
-import LocalAuthentication
 
-class LoginViewController: UIViewController {
+final class LoginViewController: UIViewController, AlertShowable {
     weak var coordinator: LoginCoordinator?
+    private var viewModel: LoginViewModel
+    
+    // MARK: - UI
 
+    private let scrollView = UIScrollView()
     private let contentStackView = UIStackView()
     private let credentialsView = CredentialsView()
-    private let touchIdView = LabelSwitchView(viewModel: SwitchSettingViewModelImpl())
-    private let button = UIButton(type: .system)
+    private let touchIdView = LabelSwitchView()
 
-    private let authenticationService: AuthenticationService = AuthenticationServiceImpl()
-    private let credentialsService: CredentialsService = CredentialsServiceImpl()
+    private var scrollViewBottomConstraint: NSLayoutConstraint!
+    private var centerConstaint: NSLayoutConstraint!
+
+    init(viewModel: LoginViewModel) {
+        self.viewModel = viewModel
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupUI()
         layout()
+        setupActions()
 
-        if authenticationService.isBiometricEnabled() {
-            credentialsView.loginTextField.text = credentialsService.getLastLogin()
-            authenticateWithBiometric()
+        if viewModel.isBiometricEnabled {
+            credentialsView.loginTextField.text = viewModel.lastLogin
         }
+
+        viewModel.viewDidLoad()
     }
 
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = Appearance.Colors.whiteBackground
 
+        contentStackView.tap {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.axis = .vertical
+            $0.distribution = .equalSpacing
+            $0.spacing = 32
+        }
 
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
-        contentStackView.axis = .vertical
-        contentStackView.distribution = .equalSpacing
-        contentStackView.spacing = 32
-        contentStackView.addArrangedSubview(credentialsView)
-        contentStackView.addArrangedSubview(touchIdView)
+        scrollView.keyboardDismissMode = .onDrag
 
+        touchIdView.switchControl.isOn = viewModel.isBiometricEnabled
 
+        credentialsView.passwordTextField.returnKeyType = .continue
 
-        button.setTitle(NSLocalizedString("login.button", comment: ""), for: .normal)
-        button.backgroundColor = .orange
-
-
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
-        touchIdView.switchControl.isOn = authenticationService.isBiometricEnabled()
-        self.hideKeyboardWhenTappedAround()
+        hideKeyboardWhenTappedAround()
     }
 
     private func layout() {
-        view.addSubview(contentStackView)
-        view.addSubview(button)
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentStackView)
+        contentStackView.addArrangedSubview(credentialsView)
+        contentStackView.addArrangedSubview(touchIdView)
 
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         credentialsView.translatesAutoresizingMaskIntoConstraints = false
         touchIdView.translatesAutoresizingMaskIntoConstraints = false
-        button.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            contentStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            contentStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            contentStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-            button.widthAnchor.constraint(equalToConstant: 200),
-            button.heightAnchor.constraint(equalToConstant: 56),
-            button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            button.topAnchor.constraint(equalTo: contentStackView.bottomAnchor, constant: 50),
+            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
         ])
+
+        if let contentStackViewSuperview = contentStackView.superview {
+            NSLayoutConstraint.activate([
+                contentStackView.leadingAnchor.constraint(equalTo: contentStackViewSuperview.leadingAnchor),
+                contentStackView.trailingAnchor.constraint(equalTo: contentStackViewSuperview.trailingAnchor),
+                contentStackView.topAnchor.constraint(greaterThanOrEqualTo: contentStackViewSuperview.topAnchor),
+                contentStackView.bottomAnchor.constraint(equalTo: contentStackViewSuperview.bottomAnchor),
+                contentStackView.widthAnchor.constraint(equalTo: contentStackViewSuperview.widthAnchor),
+                contentStackView.heightAnchor.constraint(lessThanOrEqualTo: contentStackViewSuperview.heightAnchor),
+            ])
+
+            centerConstaint = contentStackView.centerYAnchor.constraint(lessThanOrEqualTo: contentStackViewSuperview.centerYAnchor)
+            centerConstaint.priority = UILayoutPriority(rawValue: 750)
+            centerConstaint.isActive = true
+        }
+
+        scrollViewBottomConstraint = scrollView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor)
+        scrollViewBottomConstraint.priority = UILayoutPriority(rawValue: 500)
+        scrollViewBottomConstraint.isActive = true
     }
 
-    @objc private func buttonTapped() {
-        if checkCredentials(login: credentialsView.loginTextField.text!, password: credentialsView.passwordTextField.text!) {
-            credentialsService.saveLast(login: credentialsView.loginTextField.text!)
-            authenticateWithBiometric()
-        } else {
-            authenticationService.disableBiometric()
-            self.touchIdView.switchControl.isOn = false
+    private func setupActions() {
+        credentialsView.loginTextField.addTarget(self, action: #selector(loginTextFieldEnter), for: .editingDidEndOnExit)
+        credentialsView.passwordTextField.addTarget(self, action: #selector(passwordTextFieldEnter), for: .editingDidEndOnExit)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+
+        viewModel.onBiometricLoginSuccess = { [weak self] in
+            self?.touchIdView.switchControl.isOn = true
+            self?.coordinator?.login()
+        }
+
+        viewModel.onLoginSuccess = { [weak self] in
+            self?.coordinator?.login()
+        }
+
+        viewModel.onLoginFail = { [weak self] in
+            self?.touchIdView.switchControl.isOn = false
+            self?.showLoginFailedAlert()
         }
     }
 
-    private func authenticateWithBiometric() {
-        authenticationService.enableBiometric(onSuccess: { [weak self] in
-                self?.touchIdView.switchControl.isOn = true
-                self?.coordinator?.login()
-            }, onError: {
-                print("Error")
-            }) {  [weak self] in
-                self?.coordinator?.login()
-            }
+    @objc private func buttonTapped() {
+        viewModel.loginTapped(login: credentialsView.loginTextField.text, password: credentialsView.passwordTextField.text)
     }
 
-    private func checkCredentials(login: String, password: String) -> Bool {
-        return credentialsService.checkCredentials(login: login, password: password)
+    @objc private func loginTextFieldEnter() {
+        credentialsView.passwordTextField.becomeFirstResponder()
+    }
+
+    @objc private func passwordTextFieldEnter() {
+        buttonTapped()
+    }
+
+    @objc func keyboardWillShow(notification: Notification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            if self.view.frame.origin.y == 0 {
+                scrollViewBottomConstraint.constant = -keyboardSize.height
+                UIView.animate(withDuration: 0.3) { [weak self] in
+                    self?.view.layoutIfNeeded()
+                }
+            }
+        }
+    }
+
+    @objc func keyboardWillHide(notification: Notification) {
+        scrollViewBottomConstraint.constant = 0
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.view.layoutIfNeeded()
+        }
     }
 }

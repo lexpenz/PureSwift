@@ -13,3 +13,10 @@
 "touchId.label" = "Enable touch ID login";
 "loginField.placeholder" = "Username";
 "passwordField.placeholder" = "Password";
+"alert.loginFailed.title" = "Error";
+"alert.loginFailed.message" = "Credentials do not match";
+"alert.button.ok" = "OK";
+"alert.networkError.title" = "Error";
+"alert.networkError.message" = "Network error";
+"alert.noData.title" = "Error";
+"alert.noData.message" = "No data to display";

@@ -23,21 +23,19 @@ class PureSwiftUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testUserLogin_success() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use recording to get started writing UI tests.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
+        // Enter login
+        app.textFields["loginTextField"].typeText("User1")
+        app.keyboards.firstMatch.buttons["return"].tap()
 
-//    func testLaunchPerformance() throws {
-//        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, *) {
-//            // This measures how long it takes to launch your application.
-//            measure(metrics: [XCTOSSignpostMetric.applicationLaunch]) {
-//                XCUIApplication().launch()
-//            }
-//        }
-//    }
+        // Enter password
+        app.secureTextFields["passwordTextField"].typeText("Password1")
+        app.keyboards.firstMatch.buttons["continue"].tap()
+
+        // Should navigate to the list
+        XCTAssertTrue(app.otherElements["ListView"].exists, "ListView is not displayed!")
+    }
 }

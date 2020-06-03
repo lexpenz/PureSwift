@@ -11,41 +11,57 @@ import UIKit
 
 protocol MoviesListViewModel {
     var numberOfSections: Int { get }
+    var viewController: ListViewController? { get set }
+
     func numberOfRows(in section: Int) -> Int
     func cellViewModelForRow(at indexPath: IndexPath) -> MovieCellViewModel?
     func filter(text: String)
-
+    func logoutTapped()
 }
 
 final class MoviesListViewModelImpl: MoviesListViewModel {
 
+    public weak var viewController: ListViewController?
+
     private(set) var cells: [MovieCellViewModel] = []
     private var filteredCells: [MovieCellViewModel] = []
-    public weak var viewController: ListViewController?
     private var filterText = ""
-    private var networkService: NetworkService = NetworkServiceImpl()
 
-    init() {
-        networkService.getRequest(urlString: "https://api.androidhive.info/json/movies.json") { data in
-            guard let models = data as? [[String: Any]] else { return }
+    // MARK: - Services
+    private let authenticationService: AuthenticationService
+    private var networkService: NetworkService
+
+    init(networkService: NetworkService, authenticationService: AuthenticationService) {
+        self.networkService = networkService
+        self.authenticationService = authenticationService
+
+        networkService.getMovies(onSuccess: { [weak self] movies in
+            guard let self = self else { return }
 
             self.cells = [MovieCellViewModel]()
-            var jsonModels = [Movie]()
-            for model in models {
-                jsonModels.append(try! Movie(json: model))
+            self.cells = self.generateCells(models: movies)
+
+            if self.cells.isEmpty {
+                self.viewController?.showNoDataAlert()
             }
-            self.cells = self.generateCells(models: jsonModels)
 
             DispatchQueue.main.async {
                 self.viewController?.tableView.reloadData()
             }
+        }, onError: { [weak self] error in
+            guard let self = self else { return }
 
-        }
+            self.viewController?.showNetworkErrorAlert()
+        })
+    }
+
+    func logoutTapped() {
+        authenticationService.disableBiometric()
     }
 
     func filter(text: String) {
-        filterText = text
-        filteredCells = cells.filter({ $0.title.contains(text) })
+        filterText = text.lowercased()
+        filteredCells = cells.filter({ $0.title.lowercased().contains(filterText) })
     }
 }
 

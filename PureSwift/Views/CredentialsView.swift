@@ -8,12 +8,11 @@
 
 import UIKit
 
-class CredentialsView: UIView {
+final class CredentialsView: UIView {
 
     private(set) var loginTextField = UITextField()
     private(set) var passwordTextField = UITextField()
 
-    
     init() {
         super.init(frame: .zero)
 
@@ -22,14 +21,23 @@ class CredentialsView: UIView {
     }
 
     private func setupUI() {
-        backgroundColor = .lightGray
+        backgroundColor = Appearance.Colors.lightBackground
+        layer.cornerRadius = 5
 
-        loginTextField.tintColor = .black
-        passwordTextField.tintColor = .black
+        loginTextField.tap {
+            $0.textColor = Appearance.Colors.darkText
+            $0.tintColor = Appearance.Colors.lightText
+            $0.accessibilityIdentifier = "loginTextField"
+            $0.placeholder = NSLocalizedString("loginField.placeholder", comment: "")
+        }
 
-        loginTextField.placeholder = NSLocalizedString("loginField.placeholder", comment: "")
-        passwordTextField.placeholder = NSLocalizedString("passwordField.placeholder", comment: "")
-        passwordTextField.isSecureTextEntry = true
+        passwordTextField.tap {
+            $0.textColor = Appearance.Colors.darkText
+            $0.tintColor = Appearance.Colors.lightText
+            $0.accessibilityIdentifier = "passwordTextField"
+            $0.placeholder = NSLocalizedString("passwordField.placeholder", comment: "")
+            $0.isSecureTextEntry = true
+        }
 
         loginTextField.becomeFirstResponder()
     }
@@ -46,12 +54,12 @@ class CredentialsView: UIView {
             loginTextField.widthAnchor.constraint(equalToConstant: 200),
             loginTextField.centerXAnchor.constraint(equalTo: centerXAnchor),
             loginTextField.heightAnchor.constraint(equalToConstant: 56),
-            loginTextField.topAnchor.constraint(equalTo: topAnchor),
-            loginTextField.bottomAnchor.constraint(equalTo: passwordTextField.topAnchor, constant: 32),
+            loginTextField.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            loginTextField.bottomAnchor.constraint(equalTo: passwordTextField.topAnchor),
             passwordTextField.widthAnchor.constraint(equalToConstant: 200),
             passwordTextField.centerXAnchor.constraint(equalTo: centerXAnchor),
             passwordTextField.heightAnchor.constraint(equalToConstant: 56),
-            passwordTextField.bottomAnchor.constraint(equalTo: bottomAnchor)
+            passwordTextField.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 

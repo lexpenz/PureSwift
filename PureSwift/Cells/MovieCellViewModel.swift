@@ -22,8 +22,10 @@ final class MovieCellViewModel {
         self.imageUrl = imageUrl
         self.image = image ?? UIImage()
 
-        networkService.downloadImage(from: URL(string: imageUrl)!) { img in
-            self.image = img
+        if let url = URL(string: imageUrl) {
+            networkService.downloadImage(from: url) { img in
+                self.image = img
+            }
         }
     }
 }

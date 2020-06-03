@@ -19,12 +19,7 @@ class PureSwiftTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    func testControlMessage_init_succeed() {
+    func testMovie_decode_succeed() {
         // arrange
         let data = Data("""
         {
@@ -43,9 +38,14 @@ class PureSwiftTests: XCTestCase {
         let genre = ["Action", "Drama", "Sci-Fi"]
 
         // act
-        let movie = try! JSONDecoder().decode(Movie.self, from: data)
+        let decodedMovie = try? JSONDecoder().decode(Movie.self, from: data)
 
         // assert
+        guard let movie = decodedMovie else {
+            XCTFail()
+            return
+        }
+
         XCTAssertEqual(title, movie.title, "Expected equality")
         XCTAssertEqual(image, movie.image, "Expected equality")
         XCTAssertEqual(rating, movie.rating, "Expected equality")

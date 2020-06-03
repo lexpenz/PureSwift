@@ -8,41 +8,56 @@
 
 import UIKit
 
-class ListViewController: UIViewController {
+final class ListViewController: UIViewController, AlertShowable {
+
     weak var coordinator: MoviesListCoordinator?
+    private var viewModel: MoviesListViewModel
+
+    // MARK: - UI
 
     private(set) var tableView = UITableView()
-    private let viewModel: MoviesListViewModel = MoviesListViewModelImpl()
-    private let credentialsService: AuthenticationService = AuthenticationServiceImpl()
+
+    init(viewModel: MoviesListViewModel) {
+        self.viewModel = viewModel
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.accessibilityIdentifier = "ListView"
+
+        viewModel.viewController = self
 
         setupUI()
         layout()
+        setupActions()
     }
 
     private func setupUI() {
+        view.backgroundColor = .white
+        definesPresentationContext = true
+        
         tableView.tap {
             $0.register(MovieCell.self, forCellReuseIdentifier: MovieCell.reuseIdentifier)
+            $0.delegate = self
+            $0.dataSource = self
+            $0.separatorStyle = .none
         }
-        tableView.delegate = self
-        tableView.dataSource = self
-
-
-        (viewModel as! MoviesListViewModelImpl).viewController = self
-
-
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: NSLocalizedString("logout.barButton", comment: ""), style: .done, target: self, action: #selector(logoutAction))
 
         let searchController = UISearchController(searchResultsController: nil)
+        searchController.tap {
+            $0.searchResultsUpdater = self
+            $0.obscuresBackgroundDuringPresentation = false
+            $0.searchBar.placeholder = NSLocalizedString("search.placeholder", comment: "")
+            $0.searchBar.delegate = self
+        }
 
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = NSLocalizedString("search.placeholder", comment: "")
         navigationItem.searchController = searchController
-        definesPresentationContext = true
-        searchController.searchBar.delegate = self
     }
 
     private func layout() {
@@ -50,15 +65,23 @@ class ListViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 
+    private func setupActions() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: NSLocalizedString("logout.barButton", comment: ""), style: .done, target: self, action: #selector(logoutAction))
+    }
+}
+
+// MARK: - Action handlers
+
+extension ListViewController {
     @objc func logoutAction() {
-        credentialsService.disableBiometric()
+        viewModel.logoutTapped()
         coordinator?.logout()
     }
 }
@@ -90,7 +113,7 @@ extension ListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 150
+        return 100
     }
 }
 
@@ -98,8 +121,6 @@ extension ListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         tableView.reloadData()
     }
-
-
 }
 
 extension ListViewController: UISearchBarDelegate {

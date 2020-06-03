@@ -12,18 +12,25 @@ protocol AuthenticationService {
     func enableBiometric(onSuccess: @escaping ()->(), onError: @escaping ()->(), onNoBiomentic: @escaping ()->())
     func disableBiometric()
     func isBiometricEnabled() -> Bool
+    func isBiometricAvailable() -> Bool
 }
 
-class AuthenticationServiceImpl: AuthenticationService {
+final class AuthenticationServiceImpl: AuthenticationService {
+
+    // MARK: - UserDefaults keys
+
+    private enum UserDefaultsKeys: String {
+        case biometricEnabled
+    }
+
     func enableBiometric(onSuccess: @escaping () -> (), onError: @escaping () -> (), onNoBiomentic: @escaping ()->()) {
         let context = LAContext()
-
         var error: NSError?
 
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             let reason = NSLocalizedString("biometric.reason", comment: "")
             context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, authenticationError in
-                UserDefaults.standard.set(true, forKey: "biometricEnabled")
+                UserDefaults.standard.set(true, forKey: UserDefaultsKeys.biometricEnabled.rawValue)
                 
                 DispatchQueue.main.async {
                     if success {
@@ -41,10 +48,17 @@ class AuthenticationServiceImpl: AuthenticationService {
     func disableBiometric() {
         let context = LAContext()
         context.invalidate()
-        UserDefaults.standard.set(false, forKey: "biometricEnabled")
+        UserDefaults.standard.set(false, forKey: UserDefaultsKeys.biometricEnabled.rawValue)
     }
 
     func isBiometricEnabled() -> Bool {
-        return UserDefaults.standard.bool(forKey: "biometricEnabled")
+        return UserDefaults.standard.bool(forKey: UserDefaultsKeys.biometricEnabled.rawValue)
+    }
+
+    func isBiometricAvailable() -> Bool {
+        let context = LAContext()
+        var error: NSError?
+
+        return context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
     }
 }

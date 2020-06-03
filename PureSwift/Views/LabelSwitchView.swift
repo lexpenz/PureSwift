@@ -8,19 +8,12 @@
 
 import UIKit
 
-protocol SwitchSettingViewModel {
-
-}
-
-class SwitchSettingViewModelImpl: SwitchSettingViewModel {
-
-}
-
-class LabelSwitchView: UIView {
+final class LabelSwitchView: UIView {
+    
     private let textLabel = UILabel()
     private(set) var switchControl = UISwitch()
 
-    init(viewModel: SwitchSettingViewModel) {
+    init() {
         super.init(frame: .zero)
 
         setupUI()
@@ -34,6 +27,7 @@ class LabelSwitchView: UIView {
     private func layout() {
         addSubview(textLabel)
         addSubview(switchControl)
+
         translatesAutoresizingMaskIntoConstraints = false
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         switchControl.translatesAutoresizingMaskIntoConstraints = false
