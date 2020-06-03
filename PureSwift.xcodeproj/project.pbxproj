@@ -17,7 +17,7 @@
 		4C62DD92248637F600F07FCB /* Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD91248637F600F07FCB /* Appearance.swift */; };
 		4C62DD952486388400F07FCB /* UIColor+Extesions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD942486388400F07FCB /* UIColor+Extesions.swift */; };
 		4C62DD972486D83800F07FCB /* SharedKeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD962486D83800F07FCB /* SharedKeychainStorage.swift */; };
-		4C62DD9B2486E26C00F07FCB /* AlertShowingCoordinable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD9A2486E26C00F07FCB /* AlertShowingCoordinable.swift */; };
+		4C62DD9B2486E26C00F07FCB /* AlertShowable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD9A2486E26C00F07FCB /* AlertShowable.swift */; };
 		4C62DD9D2487EA4200F07FCB /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C62DD9C2487EA4200F07FCB /* LoginViewModel.swift */; };
 		4C74A24C24883B3B0052A181 /* StorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C74A24B24883B3B0052A181 /* StorageTests.swift */; };
 		4CDE05652475BA7100925918 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE05642475BA7100925918 /* AppDelegate.swift */; };
@@ -67,7 +67,7 @@
 		4C62DD942486388400F07FCB /* UIColor+Extesions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Extesions.swift"; sourceTree = "<group>"; };
 		4C62DD962486D83800F07FCB /* SharedKeychainStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedKeychainStorage.swift; sourceTree = "<group>"; };
 		4C62DD982486DB9B00F07FCB /* PureSwift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PureSwift.entitlements; sourceTree = "<group>"; };
-		4C62DD9A2486E26C00F07FCB /* AlertShowingCoordinable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertShowingCoordinable.swift; sourceTree = "<group>"; };
+		4C62DD9A2486E26C00F07FCB /* AlertShowable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertShowable.swift; sourceTree = "<group>"; };
 		4C62DD9C2487EA4200F07FCB /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		4C74A24B24883B3B0052A181 /* StorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageTests.swift; sourceTree = "<group>"; };
 		4CDE05612475BA7100925918 /* PureSwift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PureSwift.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -132,7 +132,7 @@
 		4C62DD992486E25F00F07FCB /* CommonFlows */ = {
 			isa = PBXGroup;
 			children = (
-				4C62DD9A2486E26C00F07FCB /* AlertShowingCoordinable.swift */,
+				4C62DD9A2486E26C00F07FCB /* AlertShowable.swift */,
 			);
 			path = CommonFlows;
 			sourceTree = "<group>";
@@ -414,7 +414,7 @@
 			files = (
 				4C62DD9D2487EA4200F07FCB /* LoginViewModel.swift in Sources */,
 				4C62DD952486388400F07FCB /* UIColor+Extesions.swift in Sources */,
-				4C62DD9B2486E26C00F07FCB /* AlertShowingCoordinable.swift in Sources */,
+				4C62DD9B2486E26C00F07FCB /* AlertShowable.swift in Sources */,
 				4CFC523F247924CC0018DDA3 /* MoviesListViewModel.swift in Sources */,
 				4C3A8171247B24F600047079 /* Constants.swift in Sources */,
 				4CFC5236247860690018DDA3 /* LabelSwitchView.swift in Sources */,
